@@ -324,3 +324,184 @@ class Koleksi(ABC):
 **Topic**: Object-Oriented Programming Fundamentals  
 **Language**: Python 3  
 **Status**: Completed ✓
+
+---
+
+## game_rpg.py - Sistem Game RPG Hero
+
+### Deskripsi Program
+Program demonstrasi lengkap dari 6 latihan OOP:
+- **Latihan 1-3**: Dasar class, method, inheritance dengan super()
+- **Latihan 4**: Encapsulation dengan private attributes dan getter/setter
+- **Latihan 5**: Abstract class dan interface
+- **Latihan 6**: Polymorphism dengan konsistensi nama method
+
+### Fitur Program
+✓ Sistem pertarungan hero dengan damage dan HP tracking
+✓ Inheritance dari class Hero ke class Mage
+✓ Private attributes dengan name mangling protection
+✓ Abstract class GameUnit dengan contract methods
+✓ Polymorphism untuk multiple hero types (Mage, Archer, Fighter, Healer)
+
+### Output Program
+
+```
+500
+Hero: Layla | HP: 500 | Power: 15
+Hero: Zilong | HP: 120 | Power: 20
+
+--- Pertarungan Dimulai ---
+Layla menyerang Zilong!
+Zilong terkena damage 15. Sisa HP: 105
+Zilong menyerang Layla!
+Layla terkena damage 20. Sisa HP: 480
+
+--- Update Class Hero ---
+Eudora [Mage] | HP: 80 | Mana: 100
+Eudora menyerang Balmond!
+Balmond terkena damage 30. Sisa HP: 170
+Eudora menggunakan Fireball ke Balmond!
+Balmond terkena damage 60. Sisa HP: 110
+0
+Mencoba akses paksa: 0
+Saya adalah Hero: Alucard
+Saya adalah Monster: Serigala
+--- PERANG DIMULAI ---
+Eudora (Mage) menembakkan Bola Api! Boom!
+Hero menyerang dengan tangan kosong.
+Zilong (Fighter) memukul dengan pedang! Slash!
+Gord (Mage) menembakkan Bola Api! Boom!
+Healer tidak menyerang, tapi menyembuhkan teman!
+```
+
+### Penjelasan Output
+
+**Bagian 1: Latihan 1 & 2 - Object Reference**
+- `500` = Perubahan atribut hero1.hp dari 100 menjadi 500
+- `Hero: Layla | HP: 500 | Power: 15` = Info hero dengan HP yang sudah diubah
+- Parameter object memungkinkan serang() mengakses data lawan lengkap
+
+**Bagian 2: Latihan 3 - Inheritance & super()**
+- `--- Update Class Hero ---` = Demonstrasi class Mage mewarisi dari Hero
+- `Eudora [Mage] | HP: 80 | Mana: 100` = Atribut dari parent (HP) + child (Mana)
+- `Eudora menggunakan Fireball` = Skill khusus Mage (inheritance + extension)
+
+**Bagian 3: Latihan 4 - Encapsulation**
+- `0` = Hasil get_hp() setelah set_hp(-100) → divalidasi menjadi 0 (safe)
+- `Mencoba akses paksa: 0` = Name mangling `_Hero__hp` masih bisa diakses (tapi jangan!)
+
+**Bagian 4: Latihan 5 - Abstract Class**
+- `Saya adalah Hero: Alucard` = Implementasi abstract method info()
+- `Saya adalah Monster: Serigala` = Polymorphic behavior dari abstract class
+
+**Bagian 5: Latihan 6 - Polymorphism**
+- Loop yang sama memanggil serang() berbeda-beda:
+  - Mage: Menembakkan Bola Api
+  - Archer/Hero: Menyerang tangan kosong (default)
+  - Fighter: Memukul dengan pedang
+  - Healer: Menyembuhkan teman
+- **Ini adalah polymorphism**: 1 method, N behavior! ✓
+
+### Analisis Kode
+
+**1. Tugas Analisis 1 - Modifikasi Atribut**
+```python
+hero1 = Hero("Layla", 100, 15)
+hero1.hp = 500  # Atribut publik bisa diubah langsung
+print(hero1.hp)  # Output: 500 ✓
+```
+
+**2. Tugas Analisis 2 - Parameter Object**
+```python
+def serang(self, lawan):  # Parameter: object
+    lawan.diserang(self.attack_power)  # Akses method & atribut lawan
+```
+
+**3. Tugas Analisis 3 - super()**
+```python
+class Mage(Hero):
+    def __init__(self, name, hp, attack_power, mana):
+        super().__init__(name, hp, attack_power)  # ✓ Initialize parent
+        self.mana = mana
+```
+
+**4. Tugas Analisis 4 - Encapsulation & Setter Validation**
+```python
+class Hero:
+    def __init__(self, nama, hp_awal):
+        self.__hp = hp_awal  # Private attribute
+    
+    def set_hp(self, nilai_baru):
+        if nilai_baru < 0:
+            self.__hp = 0  # ✓ Validasi: tidak boleh negatif
+        else:
+            self.__hp = nilai_baru
+```
+
+**5. Tugas Analisis 5 - Abstract Class**
+```python
+from abc import ABC, abstractmethod
+
+class GameUnit(ABC):
+    @abstractmethod
+    def serang(self, target):
+        pass
+    
+    @abstractmethod
+    def info(self):
+        pass
+
+# Semua subclass HARUS implement kedua method ini
+```
+
+**6. Tugas Analisis 6 - Polymorphism & Method Consistency**
+```python
+for pahlawan in pasukan:  # Loop sama untuk semua type
+    pahlawan.serang()  # Method sama, behavior berbeda!
+
+# Output:
+# Eudora (Mage) menembakkan Bola Api! Boom!
+# Zilong (Fighter) memukul dengan pedang! Slash!
+# Healer tidak menyerang, tapi menyembuhkan teman!
+```
+
+---
+
+## Perbandingan TechMaster.py vs game_rpg.py
+
+| Aspek | TechMaster.py | game_rpg.py |
+|-------|---|---|
+| **Tema** | Perpustakaan | Game RPG |
+| **Focus** | Encapsulation & Polymorphism | Semua 6 Konsep |
+| **Complexity** | Medium-High | Low-Medium |
+| **Real-world** | Sistem Manajemen | Game Mechanics |
+| **Abstract Class** | Koleksi | GameUnit |
+| **Inheritance** | Buku→Koleksi | Mage/Archer→Hero |
+| **Polymorphism** | hitung_denda() | serang() |
+| **Lines of Code** | ~200 | ~165 |
+
+---
+
+## Summary: Semua Konsep OOP dalam Satu Repo
+
+### ✅ Diajarkan dan Diimplementasikan
+
+| Konsep | game_rpg.py | TechMaster.py | README |
+|--------|---|---|---|
+| **1. Encapsulation** | ✓ Private `__hp` | ✓ Private `__stok` | ✓ Explained |
+| **2. Inheritance** | ✓ Mage(Hero) | ✓ Buku(Koleksi) | ✓ Explained |
+| **3. Polymorphism** | ✓ serang() | ✓ hitung_denda() | ✓ Explained |
+| **4. Abstraction** | ✓ GameUnit | ✓ Koleksi | ✓ Explained |
+| **5. Object Reference** | ✓ serang(lawan) | ✓ pinjam() | ✓ Explained |
+| **6. Attribute Access** | ✓ get/set HP | ✓ get/set stok | ✓ Explained |
+
+### 📚 Files dalam Repository
+
+1. **README.md** - Dokumentasi lengkap 6 tugas + 2 program
+2. **game_rpg.py** - 6 latihan OOP dengan output demo
+3. **TechMaster.py** - Sistem Perpustakaan (Real-world example)
+
+---
+
+**Status**: ✅ Semua Selesai & Ready to Push  
+**Total**: 3 Files | 733 Insertions | ~300 Lines Dokumentasi + Output
