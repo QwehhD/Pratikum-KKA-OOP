@@ -363,6 +363,242 @@ Program implementasi lengkap OOP dengan konsep:
 ✓ Laporan stok dan analisis peminjaman
 ✓ Private attributes untuk data protection
 
+### Struktur Class & Konsep OOP
+
+#### 1. Abstraction - Abstract Class Koleksi
+
+```python
+from abc import ABC, abstractmethod
+
+class Koleksi(ABC):
+    """Abstract class untuk semua jenis koleksi perpustakaan"""
+    
+    def __init__(self, judul, pengarang, tahun_terbit, stok):
+        self.judul = judul
+        self.pengarang = pengarang
+        self.tahun_terbit = tahun_terbit
+        self.__stok = stok           # ✓ Private: Encapsulation
+        self.__terpinjam = 0         # ✓ Private: Encapsulation
+    
+    @abstractmethod
+    def tampilkan_info(self):        # ✓ Abstract: Child harus implement
+        pass
+    
+    @abstractmethod
+    def hitung_denda(self, hari_terlambat):  # ✓ Abstract: Behavior berbeda
+        pass
+```
+
+**Konsep yang Diterapkan:**
+- **Abstraction**: Abstract class = blueprint untuk child class
+- **Encapsulation**: `__stok` & `__terpinjam` private (hanya via getter/setter)
+- **Kontrak**: Semua child HARUS implement `tampilkan_info()` & `hitung_denda()`
+
+#### 2. Encapsulation - Private Attributes & Getter/Setter
+
+```python
+def get_stok(self):
+    """Getter: Akses stok dengan kontrol"""
+    return self.__stok
+
+def pinjam(self, jumlah=1):
+    """Setter dengan validasi: Cek stok sebelum pinjam"""
+    if jumlah > self.__stok - self.__terpinjam:
+        print(f"❌ Stok {self.judul} tidak cukup!")
+        return False
+    self.__terpinjam += jumlah
+    print(f"✓ Berhasil meminjam {jumlah} {self.__class__.__name__}")
+    return True
+```
+
+**Alasan Encapsulation:**
+- ✓ **Data Protection**: Tidak bisa langsung ubah `__stok` dari luar
+- ✓ **Validasi**: `pinjam()` cek stok tersedia sebelum update
+- ✓ **Consistency**: State object selalu valid
+- ✓ **Flexibility**: Bisa tambah logic tanpa ubah interface
+
+#### 3. Inheritance - Class Buku, Majalah, DVD
+
+```python
+class Buku(Koleksi):
+    """Child class: Buku inherit dari Koleksi"""
+    
+    def __init__(self, judul, pengarang, tahun_terbit, stok, halaman, isbn):
+        super().__init__(judul, pengarang, tahun_terbit, stok)  # ✓ super()
+        self.halaman = halaman
+        self.isbn = isbn
+        self.__denda_per_hari = 5000
+    
+    def tampilkan_info(self):
+        """✓ Implement abstract method dari parent"""
+        print(f"�� BUKU: {self.judul}")
+        print(f"   ISBN: {self.isbn} | Halaman: {self.halaman}")
+        print(f"   Stok: {self.get_stok()} | Denda: Rp {self.__denda_per_hari:,}")
+    
+    def hitung_denda(self, hari_terlambat):
+        """✓ Implement abstract method dengan behavior Buku"""
+        if hari_terlambat <= 0:
+            return 0
+        return self.__denda_per_hari * hari_terlambat
+```
+
+**Konsep Inheritance:**
+- ✓ **Reuse**: `get_stok()`, `pinjam()`, `kembalikan()` dari parent
+- ✓ **Extend**: Tambah atribut khusus (halaman, isbn)
+- ✓ **super()**: Harus panggil parent constructor
+- ✓ **Override**: Implement method abstract dengan spesifik Buku
+
+```python
+class Majalah(Koleksi):
+    """Child class: Majalah inherit dari Koleksi"""
+    
+    def __init__(self, judul, penerbit, tahun_terbit, stok, edisi):
+        super().__init__(judul, penerbit, tahun_terbit, stok)
+        self.edisi = edisi
+        self.__denda_per_hari = 2000  # ✓ Denda BERBEDA untuk Majalah
+    
+    def hitung_denda(self, hari_terlambat):
+        if hari_terlambat <= 0:
+            return 0
+        return self.__denda_per_hari * hari_terlambat  # Rp 2000, bukan 5000
+
+class DVD(Koleksi):
+    """Child class: DVD inherit dari Koleksi"""
+    
+    def __init__(self, judul, sutradara, tahun_terbit, stok, durasi):
+        super().__init__(judul, sutradara, tahun_terbit, stok)
+        self.durasi = durasi
+        self.__denda_per_hari = 8000  # ✓ Denda BERBEDA untuk DVD
+    
+    def hitung_denda(self, hari_terlambat):
+        if hari_terlambat <= 0:
+            return 0
+        return self.__denda_per_hari * hari_terlambat  # Rp 8000
+```
+
+#### 4. Polymorphism - Method yang Sama, Behavior Berbeda
+
+```python
+# Satu method, tapi behavior BERBEDA-BEDA
+buku = Buku("Laskar Pelangi", "Andrea Hirata", 2005, 5, 529, "ISBN-001")
+majalah = Majalah("National Geographic", "NG", 2024, 6, "Mei 2024")
+dvd = DVD("Avengers", "Russo Bros", 2019, 2, 181)
+
+# Memanggil method yang SAMA namun behavior berbeda:
+print(buku.hitung_denda(10))      # Output: 50000 (Rp 5000 * 10)
+print(majalah.hitung_denda(10))   # Output: 20000 (Rp 2000 * 10)
+print(dvd.hitung_denda(10))       # Output: 80000 (Rp 8000 * 10)
+
+# Polymorphism dalam loop:
+koleksi_list = [buku, majalah, dvd]
+for item in koleksi_list:
+    item.tampilkan_info()  # ✓ Method sama, output berbeda!
+```
+
+**Konsep Polymorphism:**
+- ✓ **Same Interface**: Semua punya method `hitung_denda()`
+- ✓ **Different Behavior**: Setiap class punya denda rate berbeda
+- ✓ **Flexibility**: Bisa handle berbagai type dengan satu loop
+- ✓ **Extensibility**: Tambah type baru tanpa ubah existing code
+
+### Implementasi di Class Perpustakaan
+
+```python
+class Perpustakaan:
+    """Manager class untuk mengelola perpustakaan"""
+    
+    def __init__(self, nama):
+        self.nama = nama
+        self.__koleksi = []  # ✓ Encapsulation: Private
+        self.__peminjam = {}
+    
+    def tambah_koleksi(self, item: Koleksi):
+        """Type hint: item harus inherit dari Koleksi"""
+        self.__koleksi.append(item)
+    
+    def proses_peminjaman(self, nama_peminjam, judul, jumlah=1):
+        """Proses peminjaman dengan validasi"""
+        koleksi = self.cari_koleksi(judul)
+        if not koleksi:
+            return False
+        
+        if koleksi.pinjam(jumlah):  # ✓ Polymorphic call
+            # Record peminjaman
+            tanggal_kembali = datetime.now() + timedelta(days=7)
+            # ...
+            return True
+        return False
+    
+    def hitung_denda_peminjam(self, nama_peminjam):
+        """✓ Polymorphism: Berbeda denda untuk setiap type koleksi"""
+        total_denda = 0
+        for pinjaman in self.__peminjam[nama_peminjam]:
+            hari_terlambat = (datetime.now() - pinjaman['tanggal_kembali']).days
+            if hari_terlambat > 0:
+                # ✓ Polymorphic call: hitung_denda() tergantung type
+                denda = pinjaman['koleksi'].hitung_denda(hari_terlambat)
+                total_denda += denda
+```
+
+**Konsep yang Diterapkan:**
+- ✓ **Encapsulation**: `__koleksi` & `__peminjam` private
+- ✓ **Type Hint**: `item: Koleksi` pastikan parameter adalah Koleksi
+- ✓ **Polymorphism**: `koleksi.pinjam()` & `hitung_denda()` bekerja untuk semua type
+- ✓ **Abstraction**: Class Perpustakaan tidak perlu tahu detail setiap type
+
+### Analisis Penerapan OOP
+
+| Konsep | Contoh | Manfaat |
+|--------|--------|---------|
+| **Encapsulation** | `__stok`, `__terpinjam` private | Data protection & validation |
+| **Inheritance** | Buku/Majalah/DVD → Koleksi | Code reuse & consistency |
+| **Polymorphism** | `hitung_denda()` berbeda di tiap class | Flexibility & extensibility |
+| **Abstraction** | Abstract class Koleksi | Blueprint & contract enforcement |
+
+### Perbandingan: Dengan vs Tanpa OOP
+
+**❌ TANPA OOP (Procedural):**
+```python
+# Kode chaos: semua function linear
+def pinjam_buku(stok, terpinjam):
+    if terpinjam < stok: terpinjam += 1
+    
+def pinjam_majalah(stok, terpinjam):
+    if terpinjam < stok: terpinjam += 1
+    
+def pinjam_dvd(stok, terpinjam):
+    if terpinjam < stok: terpinjam += 1
+
+def denda_buku(hari): return 5000 * hari
+def denda_majalah(hari): return 2000 * hari
+def denda_dvd(hari): return 8000 * hari
+
+# Duplikasi code, sulit maintain, tidak scalable
+```
+
+**✅ DENGAN OOP (Object-Oriented):**
+```python
+class Koleksi(ABC):
+    def pinjam(self, jumlah):
+        # Logic sama untuk semua, di satu tempat
+        pass
+    
+    @abstractmethod
+    def hitung_denda(self, hari):
+        pass
+
+class Buku(Koleksi):
+    def hitung_denda(self, hari): return 5000 * hari
+
+class Majalah(Koleksi):
+    def hitung_denda(self, hari): return 2000 * hari
+
+class DVD(Koleksi):
+    def hitung_denda(self, hari): return 8000 * hari
+
+# ✓ Clean, DRY (Don't Repeat Yourself), maintainable, scalable
+```
+
 ### Output Program
 
 ```
@@ -524,3 +760,6 @@ Zilong (Fighter) memukul dengan pedang! Slash!
 Healer tidak menyerang, tapi menyembuhkan teman!
 ```
 → Loop sama, behavior berbeda! ✓
+
+---
+
