@@ -20,6 +20,24 @@ Hp dari hero1 akan berubah menjadi 500 dari sebelumnya yaitu 100.
 - Tidak ada validasi atau pengaman
 - Nilai atribut berubah dari 100 menjadi 500
 
+### Kode
+```python
+class Hero:
+    def __init__(self, name, hp, attack_power):
+        self.name = name
+        self.hp = hp
+        self.attack_power = attack_power
+
+hero1 = Hero("Layla", 100, 15)
+hero1.hp = 500
+print(hero1.hp)  # Output: 500
+```
+
+### Output Program
+```
+500
+```
+
 ---
 
 ## Tugas Analisis 2: Parameter Object vs String
@@ -36,6 +54,25 @@ Dengan menerima **object utuh**, method `serang` dapat:
 - ✓ Memanggil method lawan (diserang)
 - ✓ Mengubah state lawan (HP berkurang)
 - ✓ Implementasi game logic yang kompleks
+
+### Kode
+```python
+def serang(self, lawan):  # Parameter: object, bukan string
+    print(f"{self.name} menyerang {lawan.name}!")
+    lawan.diserang(self.attack_power)  # Akses method lawan
+    
+def diserang(self, damage):
+    self.hp -= damage
+    print(f"{self.name} terkena damage {damage}. Sisa HP: {self.hp}")
+```
+
+### Output Program
+```
+Layla menyerang Zilong!
+Zilong terkena damage 15. Sisa HP: 105
+Zilong menyerang Layla!
+Layla terkena damage 20. Sisa HP: 480
+```
 
 ---
 
@@ -56,6 +93,32 @@ Akan muncul error "AttributeError: 'Mage' object has no attribute 'name'", dikar
 3. **Mencegah duplikasi code** - tidak perlu ulang inisialisasi
 4. **Memastikan inheritance bekerja** dengan benar
 
+### Kode
+```python
+class Hero:
+    def __init__(self, name, hp, attack_power):
+        self.name = name
+        self.hp = hp
+        self.attack_power = attack_power
+
+class Mage(Hero):
+    def __init__(self, name, hp, attack_power, mana):
+        super().__init__(name, hp, attack_power)  # ✓ HARUS dipanggil!
+        self.mana = mana
+    
+    def info(self):
+        print(f"{self.name} [Mage] | HP: {self.hp} | Mana: {self.mana}")
+```
+
+### Output Program
+```
+Eudora [Mage] | HP: 80 | Mana: 100
+Eudora menyerang Balmond!
+Balmond terkena damage 30. Sisa HP: 170
+Eudora menggunakan Fireball ke Balmond!
+Balmond terkena damage 60. Sisa HP: 110
+```
+
 ---
 
 ## Tugas Analisis 4: Encapsulation & Name Mangling
@@ -70,9 +133,26 @@ Apakah nilai HP muncul atau Error?
 Nilai HP muncul. Alasan mengapa Python masih mengizinkan Name Mangling ialah untuk mencegah subclass menimpa variabel milik parent class. Kita tidak melakukannya dikarenakan itu akan melanggar kontrak encapsulation dan bisa menyebabkan kerusakan data.
 
 #### Penjelasan
-- **Nilai HP MUNCUL** (Tidak Error) - Python izinkan dengan name mangling
+- **Nilai HP MUNCUL** (Tidak Error)
+- Python izinkan dengan name mangling
 - `__hp` internally disebut `_Hero__hp`
 - Tapi JANGAN dilakukan karena melanggar encapsulation contract
+
+#### Kode
+```python
+class Hero:
+    def __init__(self, nama, hp_awal):
+        self.nama = nama
+        self.__hp = hp_awal  # Private attribute
+
+hero1 = Hero("Layla", 100)
+print(f"Mencoba akses paksa: {hero1._Hero__hp}")  # Ini bisa tapi JANGAN!
+```
+
+#### Output Program
+```
+Mencoba akses paksa: 0
+```
 
 ### 4.2 - Uji Validasi: Setter Tanpa Validasi
 
@@ -89,6 +169,34 @@ Setter sangat penting karena:
 3. **Prevent bugs** - Catch invalid data sejak awal
 4. **Game consistency** - Memastikan game logic tetap berjalan
 
+#### Kode
+```python
+class Hero:
+    def __init__(self, nama, hp_awal):
+        self.__hp = hp_awal
+    
+    def get_hp(self):
+        return self.__hp
+    
+    def set_hp(self, nilai_baru):
+        if nilai_baru < 0:
+            self.__hp = 0  # ✓ Validasi: tidak boleh negatif
+        elif nilai_baru > 1000:
+            print("Cheat terdeteksi!")
+            self.__hp = 1000
+        else:
+            self.__hp = nilai_baru
+
+hero1 = Hero("Layla", 100)
+hero1.set_hp(-100)
+print(hero1.get_hp())  # Output: 0 (safe, bukan -100!)
+```
+
+#### Output Program
+```
+0
+```
+
 ---
 
 ## Tugas Analisis 5: Abstract Class & Interface
@@ -101,6 +209,40 @@ Pada class `Hero`, hapus (atau jadikan komentar) seluruh method `def serang(self
 #### Jawaban
 Error yang muncul adalah "TypeError: Can't instantiate abstract class Hero without an implementation for abstract method 'serang'". Menurut saya arti error itu adalah kita menetapkan sebuah abstract class bernama Hero yang memiliki abstract method "serang" tanpa mengimplementasikannya di class konkret. Konsekuensinya adalah akan muncul error yang sama.
 
+#### Penjelasan
+- Abstract class adalah **KONTRAK**: semua child class HARUS implement method abstract
+- Python enforce: Jika tidak implement, ERROR!
+- Ini GOOD karena prevent incomplete implementation
+
+#### Kode
+```python
+from abc import ABC, abstractmethod
+
+class GameUnit(ABC):
+    @abstractmethod
+    def serang(self, target):
+        pass
+    
+    @abstractmethod
+    def info(self):
+        pass
+
+class Hero(GameUnit):
+    def __init__(self, nama):
+        self.nama = nama
+    
+    def serang(self, target):
+        print(f"Hero {self.nama} menebas {target}!")
+    
+    def info(self):
+        print(f"Saya adalah Hero: {self.nama}")
+```
+
+#### Output Program
+```
+Saya adalah Hero: Alucard
+```
+
 ### 5.2 - Abstract Class Tidak Bisa Diinstantiate
 
 #### Pertanyaan
@@ -108,6 +250,20 @@ Mengapa class `GameUnit` dilarang untuk dibuat menjadi object? Apa gunanya ada c
 
 #### Jawaban
 Karena class GameUnit adalah abstract class yang memang dari python dilarang untuk dibuat menjadi objek. Gunanya ialah sebagai interface atau template atribut untuk class anaknya.
+
+#### Penjelasan
+Abstract class gunanya untuk:
+- ✓ **Interface/Kontrak** - Mendefinisikan contract yang harus diikuti
+- ✓ **Enforcement** - Memastikan semua child implement method penting
+- ✓ **Code organization** - Grup behavior dan responsibilities
+- ✓ **Polymorphism** - Bisa pakai parent type untuk reference child
+- ✓ **Design pattern** - Template method pattern, strategy pattern, dll
+
+#### Output Program
+```
+Saya adalah Hero: Alucard
+Saya adalah Monster: Serigala
+```
 
 ---
 
@@ -121,6 +277,39 @@ Tanpa mengubah satu huruf pun pada kode looping, buatlah class baru `Healer(Hero
 #### Jawaban
 Ya program berjalan lancar. Keuntungan utama menurut saya adalah untuk mempermudah dan mempercepat proses penambahan atau pembaruan karakter baru di masa depan karena tidak perlu membongkar seluruh program seperti bila tidak menggunakan Polimorfisme.
 
+#### Penjelasan
+Polymorphism enable **extensibility**:
+- ✓ **Open/Closed Principle** - Open untuk extension, closed untuk modification
+- ✓ **Scalability** - Tambah class baru tanpa risik code existing
+- ✓ **Reusability** - Loop umum bisa handle semua hero type
+
+#### Kode
+```python
+class Healer(Hero):
+    def serang(self):
+        print(f"{self.nama} tidak menyerang, tapi menyembuhkan teman!")
+
+pasukan = [
+    Mage("Eudora"),
+    Archer("Miya"),
+    Fighter("Zilong"),
+    Healer("Angela")  # ✓ Tambah class baru!
+]
+
+# ✓ Loop TIDAK DIUBAH sama sekali
+for pahlawan in pasukan:
+    pahlawan.serang()
+```
+
+#### Output Program
+```
+Eudora (Mage) menembakkan Bola Api! Boom!
+Miya (Archer) memanah dari jauh! Jleb!
+Zilong (Fighter) memukul dengan pedang! Slash!
+Gord (Mage) menembakkan Bola Api! Boom!
+Healer tidak menyerang, tapi menyembuhkan teman!
+```
+
 ### 6.2 - Konsistensi Penamaan
 
 #### Pertanyaan
@@ -129,12 +318,39 @@ Ubah nama method `serang` pada class `Archer` menjadi `tembak_panah`. Apa yang t
 #### Jawaban
 Program di class archer tidak dijalankan melainkan menjalankan program di method serang yang berada di class Hero. Dikarenakan kontrak antar class mengharuskan method yang ada di Child Class harus sama dengan yang ada di Parent Class supaya program bisa dijalankan.
 
+#### Penjelasan
+Method name HARUS sama karena:
+- ✓ **Override mechanism** - Nama sama = override, nama beda = new method
+- ✓ **Polymorphism principle** - Semua child implement interface yang sama
+- ✓ **Method resolution** - Python cari dari derived class, lalu parent
+- ✓ **Predictability** - Kode lebih konsisten dan maintainable
+
+#### Kode - SALAH (Nama Berbeda)
+```python
+class Archer(Hero):
+    def tembak_panah(self):  # ✗ NAMA BERBEDA!
+        print(f"{self.nama} (Archer) memanah dari jauh!")
+
+for pahlawan in pasukan:
+    pahlawan.serang()  # Mencari "serang", bukan "tembak_panah"!
+```
+
+#### Kode - BENAR (Nama Sama)
+```python
+class Archer(Hero):
+    def serang(self):  # ✓ NAMA SAMA!
+        print(f"{self.nama} (Archer) memanah dari jauh!")
+
+for pahlawan in pasukan:
+    pahlawan.serang()  # Method Archer ini dipanggil ✓
+```
+
 ---
 
-## TechMaster.py - Sistem Manajemen Perpustakaan
+## Program Praktik: TechMaster.py - Sistem Manajemen Perpustakaan
 
 ### Deskripsi Program
-Program ini adalah implementasi lengkap OOP dengan konsep:
+Program implementasi lengkap OOP dengan konsep:
 - **Encapsulation**: Private attributes dengan getter/setter
 - **Inheritance**: Class Buku, Majalah, DVD mewarisi dari Koleksi
 - **Polymorphism**: Method yang sama, behavior berbeda
@@ -230,104 +446,11 @@ DVD        | Interstellar              | Stok:   3 | Terpinjam:  0 | Tersedia:  
 Total Stok: 31 | Total Terpinjam: 5
 
 💡 CATATAN: Denda dihitung dari 7 hari setelah tanggal pinjam
-   (Untuk demo, denda dihitung otomatis jika sudah melewati 7 hari)
-```
-
-### Konsep OOP yang Diterapkan
-
-#### 1. Encapsulation
-```python
-class Koleksi(ABC):
-    def __init__(self, judul, pengarang, tahun_terbit, stok):
-        self.__stok = stok  # Private attribute
-        self.__terpinjam = 0
-    
-    def get_stok(self):  # Getter dengan kontrol akses
-        return self.__stok
-    
-    def pinjam(self, jumlah=1):  # Setter dengan validasi
-        if jumlah > self.__stok - self.__terpinjam:
-            return False
-        self.__terpinjam += jumlah
-        return True
-```
-
-#### 2. Inheritance
-```python
-class Buku(Koleksi):  # Child class
-    def __init__(self, judul, pengarang, tahun_terbit, stok, halaman, isbn):
-        super().__init__(judul, pengarang, tahun_terbit, stok)  # Call parent
-        self.halaman = halaman
-        self.isbn = isbn
-```
-
-#### 3. Polymorphism
-```python
-# Abstract method
-@abstractmethod
-def hitung_denda(self, hari_terlambat):
-    pass
-
-# Implementasi berbeda di setiap class
-class Buku(Koleksi):
-    def hitung_denda(self, hari_terlambat):
-        return 5000 * hari_terlambat  # Rp 5000 per hari
-
-class Majalah(Koleksi):
-    def hitung_denda(self, hari_terlambat):
-        return 2000 * hari_terlambat  # Rp 2000 per hari
-
-class DVD(Koleksi):
-    def hitung_denda(self, hari_terlambat):
-        return 8000 * hari_terlambat  # Rp 8000 per hari
-```
-
-#### 4. Abstraction
-```python
-from abc import ABC, abstractmethod
-
-class Koleksi(ABC):
-    @abstractmethod
-    def tampilkan_info(self):
-        pass
-    
-    @abstractmethod
-    def hitung_denda(self, hari_terlambat):
-        pass
 ```
 
 ---
 
-## Kesimpulan
-
-### 6 Pilar OOP yang Dipelajari
-
-1. **Encapsulation** - Proteksi data dengan private attributes + validation
-2. **Inheritance** - Reuse code dengan super() untuk initialize parent
-3. **Polymorphism** - Same method name, different behavior
-4. **Abstraction** - Abstract class sebagai contract/interface
-5. **Object Reference** - Parameter object memberikan akses lengkap
-6. **Attribute Access** - Public vs private management
-
-### Best Practices
-
-✓ Selalu gunakan private attributes untuk sensitive data
-✓ Gunakan getter/setter dengan validasi
-✓ Selalu panggil `super().__init__()` dalam inheritance
-✓ Konsistensi nama method untuk polymorphism
-✓ Implement semua abstract methods
-✓ Gunakan encapsulation untuk protect data integrity
-
----
-
-**Created**: Mei 2026  
-**Topic**: Object-Oriented Programming Fundamentals  
-**Language**: Python 3  
-**Status**: Completed ✓
-
----
-
-## game_rpg.py - Sistem Game RPG Hero
+## Program Praktik: game_rpg.py - 6 Latihan OOP Hero
 
 ### Deskripsi Program
 Program demonstrasi lengkap dari 6 latihan OOP:
@@ -335,13 +458,6 @@ Program demonstrasi lengkap dari 6 latihan OOP:
 - **Latihan 4**: Encapsulation dengan private attributes dan getter/setter
 - **Latihan 5**: Abstract class dan interface
 - **Latihan 6**: Polymorphism dengan konsistensi nama method
-
-### Fitur Program
-✓ Sistem pertarungan hero dengan damage dan HP tracking
-✓ Inheritance dari class Hero ke class Mage
-✓ Private attributes dengan name mangling protection
-✓ Abstract class GameUnit dengan contract methods
-✓ Polymorphism untuk multiple hero types (Mage, Archer, Fighter, Healer)
 
 ### Output Program
 
@@ -376,132 +492,35 @@ Healer tidak menyerang, tapi menyembuhkan teman!
 
 ### Penjelasan Output
 
-**Bagian 1: Latihan 1 & 2 - Object Reference**
-- `500` = Perubahan atribut hero1.hp dari 100 menjadi 500
-- `Hero: Layla | HP: 500 | Power: 15` = Info hero dengan HP yang sudah diubah
-- Parameter object memungkinkan serang() mengakses data lawan lengkap
-
-**Bagian 2: Latihan 3 - Inheritance & super()**
-- `--- Update Class Hero ---` = Demonstrasi class Mage mewarisi dari Hero
-- `Eudora [Mage] | HP: 80 | Mana: 100` = Atribut dari parent (HP) + child (Mana)
-- `Eudora menggunakan Fireball` = Skill khusus Mage (inheritance + extension)
-
-**Bagian 3: Latihan 4 - Encapsulation**
-- `0` = Hasil get_hp() setelah set_hp(-100) → divalidasi menjadi 0 (safe)
-- `Mencoba akses paksa: 0` = Name mangling `_Hero__hp` masih bisa diakses (tapi jangan!)
-
-**Bagian 4: Latihan 5 - Abstract Class**
-- `Saya adalah Hero: Alucard` = Implementasi abstract method info()
-- `Saya adalah Monster: Serigala` = Polymorphic behavior dari abstract class
-
-**Bagian 5: Latihan 6 - Polymorphism**
-- Loop yang sama memanggil serang() berbeda-beda:
-  - Mage: Menembakkan Bola Api
-  - Archer/Hero: Menyerang tangan kosong (default)
-  - Fighter: Memukul dengan pedang
-  - Healer: Menyembuhkan teman
-- **Ini adalah polymorphism**: 1 method, N behavior! ✓
-
-### Analisis Kode
-
-**1. Tugas Analisis 1 - Modifikasi Atribut**
-```python
-hero1 = Hero("Layla", 100, 15)
-hero1.hp = 500  # Atribut publik bisa diubah langsung
-print(hero1.hp)  # Output: 500 ✓
+**Bagian 1: Analisis 1 & 2 - Object Reference**
+```
+500                                  # Perubahan hero1.hp menjadi 500
+Hero: Layla | HP: 500 | Power: 15   # Info dengan HP baru
 ```
 
-**2. Tugas Analisis 2 - Parameter Object**
-```python
-def serang(self, lawan):  # Parameter: object
-    lawan.diserang(self.attack_power)  # Akses method & atribut lawan
+**Bagian 2: Analisis 3 - Inheritance & super()**
+```
+Eudora [Mage] | HP: 80 | Mana: 100  # Atribut parent + child
+Eudora menyerang Balmond!            # Method inheritance
 ```
 
-**3. Tugas Analisis 3 - super()**
-```python
-class Mage(Hero):
-    def __init__(self, name, hp, attack_power, mana):
-        super().__init__(name, hp, attack_power)  # ✓ Initialize parent
-        self.mana = mana
+**Bagian 3: Analisis 4 - Encapsulation**
+```
+0                                    # set_hp(-100) → validasi menjadi 0
+Mencoba akses paksa: 0               # Name mangling _Hero__hp
 ```
 
-**4. Tugas Analisis 4 - Encapsulation & Setter Validation**
-```python
-class Hero:
-    def __init__(self, nama, hp_awal):
-        self.__hp = hp_awal  # Private attribute
-    
-    def set_hp(self, nilai_baru):
-        if nilai_baru < 0:
-            self.__hp = 0  # ✓ Validasi: tidak boleh negatif
-        else:
-            self.__hp = nilai_baru
+**Bagian 4: Analisis 5 - Abstract Class**
+```
+Saya adalah Hero: Alucard            # Implement abstract method
+Saya adalah Monster: Serigala        # Polymorphic behavior
 ```
 
-**5. Tugas Analisis 5 - Abstract Class**
-```python
-from abc import ABC, abstractmethod
-
-class GameUnit(ABC):
-    @abstractmethod
-    def serang(self, target):
-        pass
-    
-    @abstractmethod
-    def info(self):
-        pass
-
-# Semua subclass HARUS implement kedua method ini
+**Bagian 5: Analisis 6 - Polymorphism**
 ```
-
-**6. Tugas Analisis 6 - Polymorphism & Method Consistency**
-```python
-for pahlawan in pasukan:  # Loop sama untuk semua type
-    pahlawan.serang()  # Method sama, behavior berbeda!
-
-# Output:
-# Eudora (Mage) menembakkan Bola Api! Boom!
-# Zilong (Fighter) memukul dengan pedang! Slash!
-# Healer tidak menyerang, tapi menyembuhkan teman!
+Eudora (Mage) menembakkan Bola Api! Boom!
+Hero menyerang dengan tangan kosong.
+Zilong (Fighter) memukul dengan pedang! Slash!
+Healer tidak menyerang, tapi menyembuhkan teman!
 ```
-
----
-
-## Perbandingan TechMaster.py vs game_rpg.py
-
-| Aspek | TechMaster.py | game_rpg.py |
-|-------|---|---|
-| **Tema** | Perpustakaan | Game RPG |
-| **Focus** | Encapsulation & Polymorphism | Semua 6 Konsep |
-| **Complexity** | Medium-High | Low-Medium |
-| **Real-world** | Sistem Manajemen | Game Mechanics |
-| **Abstract Class** | Koleksi | GameUnit |
-| **Inheritance** | Buku→Koleksi | Mage/Archer→Hero |
-| **Polymorphism** | hitung_denda() | serang() |
-| **Lines of Code** | ~200 | ~165 |
-
----
-
-## Summary: Semua Konsep OOP dalam Satu Repo
-
-### ✅ Diajarkan dan Diimplementasikan
-
-| Konsep | game_rpg.py | TechMaster.py | README |
-|--------|---|---|---|
-| **1. Encapsulation** | ✓ Private `__hp` | ✓ Private `__stok` | ✓ Explained |
-| **2. Inheritance** | ✓ Mage(Hero) | ✓ Buku(Koleksi) | ✓ Explained |
-| **3. Polymorphism** | ✓ serang() | ✓ hitung_denda() | ✓ Explained |
-| **4. Abstraction** | ✓ GameUnit | ✓ Koleksi | ✓ Explained |
-| **5. Object Reference** | ✓ serang(lawan) | ✓ pinjam() | ✓ Explained |
-| **6. Attribute Access** | ✓ get/set HP | ✓ get/set stok | ✓ Explained |
-
-### 📚 Files dalam Repository
-
-1. **README.md** - Dokumentasi lengkap 6 tugas + 2 program
-2. **game_rpg.py** - 6 latihan OOP dengan output demo
-3. **TechMaster.py** - Sistem Perpustakaan (Real-world example)
-
----
-
-**Status**: ✅ Semua Selesai & Ready to Push  
-**Total**: 3 Files | 733 Insertions | ~300 Lines Dokumentasi + Output
+→ Loop sama, behavior berbeda! ✓
